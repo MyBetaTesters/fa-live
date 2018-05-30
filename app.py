@@ -10,6 +10,7 @@ socketio = SocketIO(app)
 
 @socketio.on('message')
 def handle_message(message):
+    print('------------------------%s------------------------' % data)
     emit('new message', data, broadcast=True)
 
 if __name__ == '__main__':
