@@ -11,7 +11,6 @@ socketio = SocketIO(app)
 @socketio.on('message')
 def handle_message(message):
     print('msg recv:')
-    print('------------------------%s------------------------' % message)
     emit('new message', str(message), broadcast=True)
 
 if __name__ == '__main__':
