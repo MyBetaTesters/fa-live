@@ -9,10 +9,10 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secret!')
 
 socketio = SocketIO(app)
 
-@socketio.on('message')
+@socketio.on('position')
 def handle_message(message):
     print('msg recv:', message)
-    socketio.emit('new message', str(message), broadcast=True)
+    socketio.emit('position', message, broadcast=True)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
