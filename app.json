@@ -1,0 +1,6 @@
+{
+  "name": "Live Flight Data API",
+  "description": "",
+  "repository": "https://github.com/pedro2555/fa-live",
+  "keywords": ["python", "Flask" ]
+}
