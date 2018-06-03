@@ -1,0 +1,10 @@
+version: '3'
+services:
+  redis_cache:
+    image: redis:latest
+  web_socket:
+    build: .
+    links:
+      - redis_cache
+    environment:
+      - REDIS_URL=redis://redis_cache:6379
