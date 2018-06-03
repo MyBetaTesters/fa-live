@@ -4,6 +4,7 @@ import os
 import logging
 import redis
 import gevent
+import json
 from flask import Flask
 from flask_sockets import Sockets
 
@@ -12,7 +13,7 @@ REDIS_CHAN = 'adsb'
 
 app = Flask(__name__)
 sockets = Sockets(app)
-redis = redis.from_url(REDIS_URL)
+redis = redis.from_url(REDIS_URL, decode_responses=True)
 
 class AdsbReceiver(object):
     def __init__(self):
@@ -23,9 +24,9 @@ class AdsbReceiver(object):
     def __iter_data(self):
         for message in self.pubsub.listen():
             data = message.get('data')
-            if message['type'] == 'message':
-                app.logger.info(u'Sending message: {}'.format(data))
-                yield data
+            app.logger.info(u'Sending message: {}'.format(data))
+            yield data
+            print('send: ', data)
 
     def register(self, client):
         self.clients.append(client)
@@ -60,7 +61,6 @@ def inbox(ws):
         # Sleep to prevent *constant* context-switches.
         gevent.sleep(0.1)
         message = ws.receive()
-        print('tx: ', message)
 
         if message:
             app.logger.info(u'Inserting message: {}'.format(message))
