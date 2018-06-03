@@ -26,7 +26,7 @@ class AdsbReceiver(object):
             data = message.get('data')
             app.logger.info(u'Sending message: {}'.format(data))
             yield data
-            print('send: ', data)
+            print(data)
 
     def register(self, client):
         self.clients.append(client)
@@ -48,15 +48,10 @@ class AdsbReceiver(object):
 recvr = AdsbReceiver()
 recvr.start()
 
-@sockets.route('/echo')
-def echo_socket(ws):
-    while not ws.closed:
-        message = ws.receive()
-        print('recv: ', message)
-        ws.send(message)
-
-@sockets.route('/tx')
+@sockets.route('/chat')
 def inbox(ws):
+    recvr.register(ws)
+
     while not ws.closed:
         # Sleep to prevent *constant* context-switches.
         gevent.sleep(0.1)
@@ -65,19 +60,6 @@ def inbox(ws):
         if message:
             app.logger.info(u'Inserting message: {}'.format(message))
             redis.publish(REDIS_CHAN, message)
-
-@sockets.route('/rx')
-def outbox(ws):
-    print('connected')
-    recvr.register(ws)
-
-    while not ws.closed:
-        # Context switch while `ChatBackend.start` is running in the background.
-        gevent.sleep(0.1)
-
-@app.route('/')
-def hello():
-    return 'Hello World!'
 
 if __name__ == "__main__":
     from gevent import pywsgi
