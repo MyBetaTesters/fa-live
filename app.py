@@ -32,6 +32,10 @@ class AdsbReceiver(object):
         self.clients.append(client)
 
     def send(self, client, data):
+        message = json.loads(data)
+        if hasattr(client, 'callsign') and 'callsign' in message:
+            if message['callsign'] == client.callsign:
+                return
         try:
             client.send(data)
         except Exception:
@@ -50,15 +54,23 @@ recvr.start()
 
 @sockets.route('/chat')
 def inbox(ws):
+    # append callsign to websocket, if included in first comunication
+    message = json.loads(ws.receive())
+    if 'callsign' in message:
+        ws.callsign = message['callsign']
+
+    app.logger.info(u'connected: {}'.format(message))
+    redis.publish(REDIS_CHAN, message)
     recvr.register(ws)
 
+    # continue looping for new messages
     while not ws.closed:
         # Sleep to prevent *constant* context-switches.
         gevent.sleep(0.1)
-        message = ws.receive()
+        data = ws.receive()
 
-        if message:
-            app.logger.info(u'Inserting message: {}'.format(message))
+        if data:
+            app.logger.info(u'message: {}'.format(data))
             redis.publish(REDIS_CHAN, message)
 
 if __name__ == "__main__":
